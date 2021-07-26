@@ -1,19 +1,22 @@
-//Copied Solution: was supposed to be faster but this runs at the same memory capacity as well. 
-//Supposed to run at 34.6 MB
+//Less congested solution: much better
 class Solution {
     public int[] plusOne(int[] digits) {
-        for(int i = digits.length-1; i>=0; i--){
-            if(digits[i]!=9){
-                digits[i] = digits[i]+1;
-                return digits;
-            }else{
-                digits[i]=0;
-            }      
+        
+    int n = digits.length;
+    for(int i=n-1; i>=0; i--) {
+        if(digits[i] < 9) {
+            digits[i]++;
+            return digits;
         }
-        digits = new int[digits.length + 1];
-        digits[0] = 1;
-        return digits;
+        
+        digits[i] = 0;
     }
+    
+    int[] newNumber = new int [n+1];
+    newNumber[0] = 1;
+    
+    return newNumber;
+}
 }
 
 //My solution: 0 ms; 37.4 MB–better than 66.45%
