@@ -10,29 +10,33 @@ import java.util.*;
  *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
  * }
  */
-/*
+
 class Solution {
     public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
-        int nums[]; 
-        
-        for (int i = 0; i < l1.size(); i++) { 
-            nums.add(l1.get());
+        ListNode head=new ListNode(-1);
+        ListNode head2=head;
+        while (l1!=null && l2!=null)
+        {
+            if(l1.val<l2.val) {
+                head.next = new ListNode(l1.val);
+                l1=l1.next;
+            }
+            else
+            {
+                head.next = new ListNode(l2.val);
+                l2=l2.next;
+            }
+            head=head.next;
         }
-        for (int i = 0; i < l2.size(); i++) {
-            nums.add(l2.get());
-        }
-        
-        Arrays.sort(nums, Collections.reverseOrder());
-        
-        LinkedList<Integer>result = new LinkedList<Integer>();
-        for (int i = 0; i < nums.size(); i++) {
-            result.add(i);
-        }
-        return result;
+        if(l1!=null)
+            head.next=l1;
+        else
+            head.next=l2;
+        return head2.next;
     }
 }
 
-*/
+/*
 
 class Solution {
     public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
@@ -65,3 +69,4 @@ class Solution {
         return temp_node.next;
     }
 }
+*/
