@@ -13,20 +13,26 @@
  *     }
  * }
  */
+//recursive method, arguably much much better
 class Solution {
     public boolean isSameTree(TreeNode p, TreeNode q) {
-        //This will be a MUCH better implementation
+        //if both trees are null
+        if (p == null && q == null) {
+            return true; 
+        }
+        //if only one tree is null
+        if (q == null || p == null) {
+            return false; 
+        }
+        //if the values when run recusively is different
+        if (p.val != q.val) {
+            return false; 
+        }
+        return isSameTree(p.right, q.right) && isSameTree(p.left, q.left);
     }
 }
-
-//edge cases
-/*
-either tree could be equal to 0; 
-ideal: comparing on the fly
-easier: putting everything in a stack and comparing the stack when .pop() is invoked
-*/
-
-//1 ms, 36.5 MB implementation. Not great imho
+//1 ms, 36.5 MB implementation. Not great imho. 
+//This implementation is actually the iterative method
 /*
 class Solution {
     public boolean isSameTree(TreeNode p, TreeNode q) {
@@ -87,7 +93,6 @@ class Solution {
     }
 }
 */
-
 
 
 
