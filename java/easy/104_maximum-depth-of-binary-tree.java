@@ -60,3 +60,14 @@ Recursive might be the best way to go
 DFS might help a lot
 
 */
+
+
+/*
+it's also worth mentioning that if you want to recursively visit all the nodes:
+maxDepth(root.left);
+maxDepth(root.right);
+System.out.print(root.val + " ");
+
+would work. This is pretty mind bogglig to be honest but I got it!
+
+*/
