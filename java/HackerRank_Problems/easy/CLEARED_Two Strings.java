@@ -24,12 +24,7 @@ class Result {
     public static String twoStrings(String s1, String s2) {
         String result = helper(s1, s2);
         
-        if (result.isEmpty()) {
-            return "NO";
-        }
-        else {
-            return "YES";
-        }
+        return result; 
     }
     public static String helper(String s1, String s2) {
         //sliding window hashmap?
@@ -42,10 +37,10 @@ class Result {
         
         for (int i = 0; i < s2.length(); i++) {
             if (set.containsKey(s2.charAt(i))) {
-                count++;
+                return "YES";
             }
         }
-        return s2.substring(0, count); 
+        return "NO";
     }
 
 }
@@ -76,4 +71,3 @@ public class Solution {
         bufferedWriter.close();
     }
 }
-
