@@ -24,12 +24,12 @@ class Result {
     }
     private static int helper(String s) {
         int count = 0; 
-        Map<String, Integer> map = new HashMap<>();
+        Map<String, Integer> map = new HashMap<>(); //counts every substring frequency
         
-        for (int i = 0; i < s.length(); i++) {
+        for (int i = 0; i < s.length(); i++) { //we get every possible substring from the string
             for (int j = i; j < s.length(); j++) {
                 char[] c = s.substring(i, j + 1).toCharArray();
-                Arrays.sort(c);
+                Arrays.sort(c); //to make sure everything looks the same, we will need to sort them
                 String k = new String(c);
                 
                 if (map.containsKey(k)) {
@@ -43,7 +43,7 @@ class Result {
         
         for (String c : map.keySet()) {
             int v = map.get(c);
-            count = count + (v * (v - 1)) / 2;
+            count = count + (v * (v - 1)) / 2; //this is a combination formula
         }
         return count; 
     }
