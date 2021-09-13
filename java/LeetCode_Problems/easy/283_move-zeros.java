@@ -22,4 +22,8 @@ class Solution {
             //start from position + 1 from the lastnonzero area and add zeros at the end
         }
     }
+    
+    private void optimal_questionmark(int[] nums) {
+       //collections.swap does not work with arrays. This will require a vector declaration, which is illegal in this problem 
+    }
 }
