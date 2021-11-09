@@ -14,11 +14,14 @@
  * }
  */
 class Solution {
+    int result = 0; 
     public int rangeSumBST(TreeNode root, int low, int high) {
-        return me(root, low, high);
+        //return iterative(root, low, high);
+        recursive(root, low, high);
+        return result; 
     }
     
-    public int me(TreeNode root, int low, int high) {
+    public int iterative(TreeNode root, int low, int high) {
         //int result = low + high;
         int result = 0; 
         Stack<TreeNode> stack = new Stack<>();
@@ -38,6 +41,21 @@ class Solution {
         }
         
         return result;
+    }
+    
+    //recursive is MUCH faster
+    public void recursive(TreeNode root, int low, int high) {
+        if (root != null) {
+            if (low <= root.val && high >= root.val) {
+                result += root.val; 
+            }
+            if (low < root.val) {
+                recursive(root.left, low, high);
+            }
+            if (root.val < high) {
+                recursive(root.right, low, high);
+            }
+        }
     }
 }
 
