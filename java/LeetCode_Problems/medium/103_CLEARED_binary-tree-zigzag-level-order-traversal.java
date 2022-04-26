@@ -14,46 +14,56 @@
  * }
  */
 class Solution {
+    List<List<Integer>> list = new ArrayList<>(); 
+    Boolean flag = true; 
     public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
-        return solution1(root);
-    }
-    
-    public List<List<Integer>> solution1(TreeNode root) {
-        List<List<Integer>> list = new ArrayList<>(); 
-        
         if (root == null) return list; 
         
-        Queue<TreeNode> queue = new LinkedList<>();
+        //dfs_recursion(root, 0, flag);
+        dfs_iteration(root);
+        
+        return list; 
+    }
+    
+    public void bfs(TreeNode root) {
+        Queue<TreeNode> queue = new LinkedList<>(); 
         queue.clear(); 
         queue.add(root);
-        boolean flag = false; 
-        
-        //odd numbers = left to right
-        //even numbers = right to left
+        Boolean flag = false; 
         
         while (!queue.isEmpty()) {
             int size = queue.size(); 
-            List<Integer> temp_list = new ArrayList<>(); 
+            List<Integer> temp = new ArrayList<>();
             
             for (int i = 0; i < size; i++) {
                 TreeNode current = queue.poll(); 
-                temp_list.add(current.val);
+                temp.add(current.val);
                 
                 if (null != current.left) queue.add(current.left);
                 if (null != current.right) queue.add(current.right);
             }
             if (flag) {
-                Collections.reverse(temp_list);
-                list.add(temp_list);
-                flag = !flag;
+                Collections.reverse(temp);
             }
-            else {
-                list.add(temp_list);
-                flag = !flag;
-            }
+            flag = !flag;
+            list.add(temp);
+        }
+    }
+    
+    public void dfs_recursion(TreeNode root, int level, Boolean flag) {
+        if (level == list.size()) {
+            list.add(new ArrayList<Integer>());
         }
         
-        return list; 
+        if (flag) {
+            list.get(level).add(root.val);
+        }
+        else {
+            list.get(level).add(0, root.val);
+        }
+        
+        
+        if (root.left != null) dfs_recursion(root.left, level + 1, !flag);
+        if (root.right != null) dfs_recursion(root.right, level + 1, !flag);
     }
 }
-
