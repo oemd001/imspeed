@@ -17,6 +17,20 @@ class Solution {
     public List<List<Integer>> levelOrder(TreeNode root) {
         return bfs(root);
     }
+
+    public void dfs_recursion(TreeNode root, int level) {
+        //This part essentially creates a new level for the ArrayList stack
+        if (list.size() == level) {
+            list.add(new ArrayList<Integer>());
+        }
+        
+        //This part basically adds another value to the already existing stack
+        list.get(level).add(root.val);
+        
+        //perform everything on the left first and then to the right
+        if (root.left != null) helper(root.left, level++);
+        if (root.right != null) helper(root.right, level++);
+    }
     
     public List<List<Integer>> bfs(TreeNode root) {
         List<List<Integer>> list = new ArrayList<>(); 
