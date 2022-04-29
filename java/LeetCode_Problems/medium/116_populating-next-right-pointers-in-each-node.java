@@ -22,16 +22,20 @@ class Node {
 */
 
 class Solution {
+    int compare = 0; 
+    Boolean flag = true;
+    
     public Node connect(Node root) {
-        return solution1(root);
+        if (root == null) return root;
+        //iteration(root);
+        //iterative_constant(root);
+        recursive_constant(root);
+        return root; 
     }
     
-    public Node solution1(Node root) {
-        
-        if (root == null) return root; 
-        
+    public void iteration(Node root) {
         Queue<Node> queue = new LinkedList<>(); 
-        queue.clear();
+        queue.clear(); 
         queue.add(root);
         
         while (!queue.isEmpty()) {
@@ -42,14 +46,59 @@ class Solution {
                 
                 if (i < size - 1) {
                     current.next = queue.peek(); 
-                } 
+                }
                 
-                if (null != current.left) queue.add(current.left);
-                if (null != current.right) queue.add(current.right);
+                if (null != current.left) {
+                    queue.add(current.left);
+                }
+                if (null != current.right) {
+                    queue.add(current.right);
+                }
+                
             }
         }
-        
-        return root; 
     }
+    
+    public void iterative_constant(Node root) {
+        Node leftmost = root; 
+        
+        while (leftmost.left != null) {
+            Node head = leftmost;  
+            
+            while (head != null) {
+                head.left.next = head.right; 
+                
+                if (head.next != null) {
+                    head.right.next = head.next.left; 
+                }
+                
+                head = head.next; 
+            }
+            leftmost = leftmost.left; 
+        }
+        
+    }
+    
+    
+    public void recursive_constant(Node root) {
+        if (root == null) {
+            return; 
+        }
+        if (root.left != null) {
+            root.left.next = root.right; 
+        }
+        if (root.right != null) {
+            if (root.next != null) {
+                root.right.next = root.next.left; 
+            }
+            else {
+                root.right.next = null; 
+            }
+        }
+        recursive_constant(root.left);
+        recursive_constant(root.right);
+    }
+    
+    
+    
 }
-
