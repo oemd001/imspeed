@@ -14,51 +14,51 @@ class Node {
 */
 
 class Solution {
-    public Node copyRandomList(Node head) {
-        return test(head);
-    }
     
-    public Node test(Node head) {
-        if (head == null) return null;
-        
+    public Node copyRandomList(Node head) {
+        //return iterative(head);
         Map<Node, Node> map = new HashMap<>();
+        
+        return recursive(head, map);
+    }
+    public Node iterative(Node head) {
+        if (head == null) return null; 
+        
+        Map<Node, Node> map = new HashMap<>(); 
         Node current = head; 
         
         while (current != null) {
-            map.put(current, new Node(current.val, null, null)); //1st null is for next, 2nd null is for random
+            map.put(current, new Node(current.val, null, null));
+            
             current = current.next; 
         }
+        
         current = head; 
+        
         while (current != null) {
             map.get(current).next = map.get(current.next);
             map.get(current).random = map.get(current.random);
+            
             current = current.next; 
         }
         
         return map.get(head);
     }
+    
+    public Node recursive(Node head, Map<Node, Node> map) {
+        if (head == null) return null; 
+        
+        //exit condition
+        if (map.containsKey(head)) {
+            return map.get(head);
+        }
+        
+        Node node = new Node(head.val, null, null);
+        map.put(head, node);
+        
+        node.next = recursive(head.next, map);
+        node.random = recursive(head.random, map);
+        
+        return node; 
+    }
 }
-
-/*
-O(n), time complexity O(n)
-two "node" pointers
-
-map<node, node>
-three arguments val, next, random
-val: value
-next = linking to another node
-random = linking another node
-
-shallow copy: (sharing the same address and node on the same heap) <-- we don't want this
-node a = new node(1);
-a = b; 
-
-deep copy: (creating a brand new node and placing it on the heap)
-node a = new node(1);
-node b = new node(1)
-
-if all values are not unique; key, value pairing
-key: listnode address within the heap
-value: the head.val value of our value
-
-*/
