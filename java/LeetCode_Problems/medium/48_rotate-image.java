@@ -1,62 +1,33 @@
 class Solution {
     public void rotate(int[][] matrix) {
-        solution2(matrix);
-    }
-    
-    //this solution I don't get
-    public void solution1(int[][] matrix) {
-        if (matrix.length == 1) {
-            return;
-        }
-        
-        //hc is the height and column of the matrix, given that they are both the same
-        int hc = matrix.length; 
-        int temp = 0; 
-        
-        for (int i = 0; i < (hc + 1) / 2; i++) {
-            for (int j = 0; j < hc / 2; j++) {
-                temp = matrix[hc - 1 - j][i];
-                matrix[hc - 1 - j][i] = matrix[hc - 1 - i][hc - j - 1];
-                matrix[hc - 1 - i][hc - j - 1] = matrix[j][hc - 1 - i];
-                matrix[j][hc - 1 - i] = matrix[i][j];
-                matrix[i][j] = temp; 
-            }
-            
-        }
-    }
-    
-    public void solution2(int[][] matrix) {
-        if (matrix.length == 1) {
-            return; 
-        }
+        /*
+        lin alg: 
+        reflect, transpose
+        I hate this problem
+        */
         transpose(matrix);
         reflect(matrix);
     }
-    
-    public void transpose(int[][] matrix) {
-        int len = matrix.length; 
-        int temp = 0; 
+    private void reflect(int[][] matrix) {
         
-        for (int i = 0; i < len; i++) {
-            for (int j = i + 1; j < len; j++) {
-                temp = matrix[j][i];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length / 2; j++) { //we want to divide the columns by two 
+                                                            //as we are not interested in the middle columns
+                int temp = matrix[i][j];
+                matrix[i][j] = matrix[i][matrix.length - j - 1];
+                matrix[i][matrix.length - j - 1] = temp; 
+            }
+        }
+    }
+    
+    private void transpose(int[][] matrix) {
+        
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = i + 1; j < matrix.length; j++) {
+                int temp = matrix[j][i];
                 matrix[j][i] = matrix[i][j];
                 matrix[i][j] = temp; 
             }
         }
     }
-    
-    public void reflect(int[][] matrix) {
-        int len = matrix.length; 
-        int temp = 0; 
-        
-        for (int i = 0; i < len; i++) {
-            for (int j = 0; j < len / 2; j++) {
-                temp = matrix[i][j];
-                matrix[i][j] = matrix[i][len - j - 1];
-                matrix[i][len - j - 1] = temp;
-            }
-        }
-    }
 }
-
