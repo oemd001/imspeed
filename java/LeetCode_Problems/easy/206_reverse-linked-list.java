@@ -8,20 +8,35 @@
  *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
  * }
  */
-//https://www.youtube.com/watch?v=jY-EUKXYT20&ab_channel=DineshVaryani (very helpful)
 class Solution {
-public ListNode reverseList(ListNode head) {
-    
-    ListNode current = head;
-    ListNode previous = null;
-    ListNode next = null;
-    
-    while (current != null) {
-        next = current.next;
-        current.next = previous;
-        previous = current; 
-        current = next;
+    public ListNode reverseList(ListNode head) {
+        //return iterative(head);
+        return recursive(head);
+    }
+    public ListNode iterative(ListNode head) {
+        ListNode current = head; 
+        ListNode previous = null; 
+        ListNode next = null; 
+        
+        while (current != null) {
+            next = current.next; 
+            current.next = previous; 
+            previous = current; 
+            current = next; 
         }
-    return previous;
+        
+        return previous; 
+    }
+    
+    public ListNode recursive(ListNode head) {
+        if (head == null || head.next == null) {
+            return head; 
+        }
+        
+        ListNode previous = recursive(head.next);
+        head.next.next = head; 
+        head.next = null;
+        
+        return previous; 
     }
 }
