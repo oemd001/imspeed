@@ -19,7 +19,9 @@ class Solution {
         //return iterative(head);
         Map<Node, Node> map = new HashMap<>();
         
-        return recursive(head, map);
+       //return recursive(head, map);
+        
+        return iterative_optimized(head);
     }
     public Node iterative(Node head) {
         if (head == null) return null; 
@@ -60,5 +62,40 @@ class Solution {
         node.random = recursive(head.random, map);
         
         return node; 
+    }
+    
+    public Node iterative_optimized(Node head) {
+        if (head == null) return null;
+        
+        Node current = head; 
+        
+        while (current != null) {
+            Node newNode = new Node(current.val);
+            newNode.next = current.next; 
+            current.next = newNode; 
+            current = newNode.next; 
+        }
+        
+        current= head; 
+        
+        while (current != null) {
+            current.next.random = (current.random != null) ? current.random.next : null; 
+            current = current.next.next; 
+        }
+        
+        Node current_old_list = head; 
+        Node current_new_list = head.next; 
+        Node old_head = head.next; 
+        
+        Node ptr_old_list = head; // A->B->C
+        Node ptr_new_list = head.next; // A'->B'->C'
+        Node head_old = head.next;
+        while (ptr_old_list != null) {
+            ptr_old_list.next = ptr_old_list.next.next;
+            ptr_new_list.next = (ptr_new_list.next != null) ? ptr_new_list.next.next : null;
+            ptr_old_list = ptr_old_list.next;
+            ptr_new_list = ptr_new_list.next;
+        }
+        return head_old;
     }
 }
