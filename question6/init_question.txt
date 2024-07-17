@@ -1,0 +1,70 @@
+Problem 6: Digitize Trade Information (100 Points)
+Premise
+Digitizing old information for analytics, using a sub-sample. A single page of hand written trade information has been scanned and preprocessed. 
+It is now formatted as a grid of images of numbers. Your task is to process these images to extract their contents and convert the provided folder to a list of objects. 
+You have been given 800 images representing 40 rows and 20 columns.
+
+Rows are structured as follows: 0-5: Trade Id, 6-11: Day (yyMMdd), 12-17: Time (hhMMss), 18-19: Trade value (millions).
+
+Your task is to load this preprocessed data and convert it to Trade objects with an ID, timestamp and raw value.
+
+Pointers
+This is fundamentally a classification ML task using the MNIST dataset. There are many approaches you could use such as KNN clustering, 
+Support Vector Machines and Neural Networks.
+
+To access ML libraries and the dataset, you will need to use a DSML templated instance on JupyterHub 
+(jupyter in DA, https://americas.gs-jupyterhub.site.gs.com/hub/spawn ). Code samples provided will work there. 
+The service does not offer persistent storage so remember to backup your work locally! (can upload/download files with ease). 
+You will need to upload the provide zip files and download your solution to submit.
+
+This challenge is largely left open-ended implementation wise. In part this is to marginally increase difficulty, 
+but is also to allow you to experiment with different ML approaches and ways of solving this problem. 
+Please experiment with different approaches and aim for as much novelty as possible.
+
+Loading the MNIST dataset:
+from keras.datasets import mnist
+
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+The produced trade objects should be printed in descending order, sorted by ID.
+
+Trade object — USE THIS!
+class Trade:
+    def __init__(self, id, date, time, value):
+        s = ""
+        self.id = s.join(str(x) for x in id.tolist())
+        self.date = s.join(str(x) for x in date.tolist())
+        self.time = s.join(str(x) for x in time.tolist())
+        self.value = s.join(str(x) for x in value.tolist())
+
+    def __str__(self):
+        return f"Trade:\n ID: {self.id} \n DATE: {self.date} \n TIME: {self.time} \n VALUE ($MM): {self.value}"
+
+
+Basic Structure
+Code should follow these overall steps:
+
+Load image arrays to np arrays from the given folder
+Use a machine learning approach to classify each image as a digit.
+Process these generated digits to produce trade objects
+Sort these trade objects and print (separated by ----- on a new line)
+Calculate the total value of all these trades (in millions, eg if total is 1,000,000 then your automated submission would be 1).
+
+Solution Inputs:
+Use swagger to download:
+solution inputs -> to test your code
+solution answer -> to test your code is producing the expected answer
+answer inputs -> this is to be used to create the actual answer
+
+Criteria
+Correct total calculated. (20%)
+Object specification must be met (Id, time, qty). (10%)
+% judgement on accuracy of the model produced on a test "page" - this will be an identical format to the one provided as an example for working from. (15%)
+Originality - ML solutions going beyond plugging values into a prepared library. This could mean writing lower level code, ie a neural network from near-scratch, or using a unique combination of approaches. (25%)
+Explanation of solution - Understand the approach used, some of how & why it works. Discuss any optimizations made (30%)
+
+For explanation points please discuss your solution inline in the jupyter notebook.
+
+Answer Submission Format:
+Single number representing the total value of all the trades
+Email Ben/Kate/Nick your solution (and final output) for assessment against the other criteria.
