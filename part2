@@ -3,10 +3,11 @@ import datetime
 def parse_transaction(line):
     parts = line.strip().split(', ')
     date_time = datetime.datetime.strptime(parts[0], '%Y-%m-%d %H:%M:%S')
+    amount = round(float(parts[2]), 2)  # Round the amount here immediately after parsing
     return {
         'date_time': date_time,
         'crypto_type': parts[1],
-        'amount': float(parts[2]),
+        'amount': amount,
         'transaction_id': parts[3]
     }
 
@@ -19,14 +20,14 @@ def calculate_analytics(transactions):
         crypto = transaction['crypto_type']
         amount = transaction['amount']
 
-        # Update total spent and received with rounded values
+        # Update total spent and received
         if amount < 0:
-            total_spent[crypto] = round(total_spent.get(crypto, 0) + (-amount), 2)
+            total_spent[crypto] = total_spent.get(crypto, 0) - amount  # No need to round here anymore
         else:
-            total_received[crypto] = round(total_received.get(crypto, 0) + amount, 2)
+            total_received[crypto] = total_received.get(crypto, 0) + amount  # No need to round here anymore
 
-        # Update net holdings with rounded values
-        net_holdings[crypto] = round(net_holdings.get(crypto, 0) + amount, 2)
+        # Update net holdings
+        net_holdings[crypto] = net_holdings.get(crypto, 0) + amount  # No need to round here anymore
 
     return total_spent, total_received, net_holdings
 
