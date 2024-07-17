@@ -1,19 +1,24 @@
-num_trades = len(predicted_digits) // 24  # adjust 24 based on how many digits per trade
+from PIL import Image
+import os
 
-trade_details = []
-for i in range(num_trades):
-    offset = i * 24  # adjust the slice size based on your digit distribution per trade
-    trade_id = ''.join(map(str, predicted_digits[offset:offset+6]))
-    date = ''.join(map(str, predicted_digits[offset+6:offset+12]))
-    time = ''.join(map(str, predicted_digits[offset+12:offset+18]))
-    value = int(''.join(map(str, predicted_digits[offset+18:offset+24])))
+directory_path = 'mnist_images'
 
-    trade_details.append((trade_id, date, time, value))
+images = []
+for filename in os.listdir(directory_path):
+    if filename.endswith(".png"):
+        img_path = os.path.join(directory_path, filename)
+        images.append(Image.open(img_path))
 
-# Now create trade objects
-trades = [Trade(*details) for details in trade_details]
+## Pre-proc image
+preprocessed_images = [img.convert('L').resize((28, 28)) for img in images]
 
-# Example to print or write these trades to a file
-with open('output.txt', 'w') as f:
-    for trade in trades:
-        f.write(f"{trade}\n")
+## Impl
+import numpy as np
+
+image_arrays = np.array([np.array(img) for img in preprocessed_images])
+image_arrays = image_arrays.reshape(-1, 28, 28, 1) / 255.0  
+
+## Classify
+predictions = model.predict(image_arrays)
+predicted_digits = np.argmax(predictions, axis=1)
+print(predicted_digits)
