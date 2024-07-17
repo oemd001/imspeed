@@ -10,13 +10,6 @@ def parse_transaction(line):
         'transaction_id': parts[3]
     }
 
-def initialize_crypto_dict():
-    return {
-        "additionalProp1": 0,
-        "additionalProp2": 0,
-        "additionalProp3": 0
-    }
-
 def calculate_analytics(transactions):
     total_spent = {}
     total_received = {}
@@ -26,19 +19,14 @@ def calculate_analytics(transactions):
         crypto = transaction['crypto_type']
         amount = transaction['amount']
 
-        if crypto not in total_spent:
-            total_spent[crypto] = initialize_crypto_dict()
-            total_received[crypto] = initialize_crypto_dict()
-            net_holdings[crypto] = initialize_crypto_dict()
-
-        # Update total spent and received
+        # Update total spent and received with rounded values
         if amount < 0:
-            total_spent[crypto]["additionalProp1"] += (-amount)
+            total_spent[crypto] = round(total_spent.get(crypto, 0) + (-amount), 2)
         else:
-            total_received[crypto]["additionalProp1"] += amount
+            total_received[crypto] = round(total_received.get(crypto, 0) + amount, 2)
 
-        # Update net holdings
-        net_holdings[crypto]["additionalProp1"] += amount
+        # Update net holdings with rounded values
+        net_holdings[crypto] = round(net_holdings.get(crypto, 0) + amount, 2)
 
     return total_spent, total_received, net_holdings
 
