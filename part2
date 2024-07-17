@@ -1,0 +1,51 @@
+import datetime
+
+def parse_transaction(line):
+    parts = line.strip().split(', ')
+    date_time = datetime.datetime.strptime(parts[0], '%Y-%m-%d %H:%M:%S')
+    return {
+        'date_time': date_time,
+        'crypto_type': parts[1],
+        'amount': float(parts[2]),
+        'transaction_id': parts[3]
+    }
+
+def calculate_analytics(transactions):
+    total_spent = {}
+    total_received = {}
+    net_holdings = {}
+
+    for transaction in transactions:
+        crypto = transaction['crypto_type']
+        amount = transaction['amount']
+
+        # Update total spent and received
+        if amount < 0:
+            total_spent[crypto] = total_spent.get(crypto, 0) + (-amount)
+        else:
+            total_received[crypto] = total_received.get(crypto, 0) + amount
+
+        # Update net holdings
+        net_holdings[crypto] = net_holdings.get(crypto, 0) + amount
+
+    return total_spent, total_received, net_holdings
+
+def read_transactions_and_calculate(filename):
+    transactions = []
+
+    with open(filename, 'r') as file:
+        for line in file:
+            transaction = parse_transaction(line)
+            transactions.append(transaction)
+
+    total_spent, total_received, net_holdings = calculate_analytics(transactions)
+
+    return total_spent, total_received, net_holdings
+
+# Example usage
+filename = 'input5.txt'  # Replace with the actual file name
+total_spent, total_received, net_holdings = read_transactions_and_calculate(filename)
+
+print("Total Spent:", total_spent)
+print("Total Received:", total_received)
+print("Net Holdings:", net_holdings)
