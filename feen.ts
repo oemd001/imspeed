@@ -1,126 +1,77 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import styles from "./MeetingHitRateChart.module.scss";
 import { numeral } from "utils";
 import { ColumnChart } from "brio-ui-components";
-import Highcharts from "highcharts";
 
 const MeetingHitRateChart = ({
   hitRatiosByMeetingType,
   hitRatiosByPreDeal,
-}: {
-  hitRatiosByMeetingType: PartialRecord<MeetingType, number | undefined>;
-  hitRatiosByPreDeal: PartialRecord<MeetingType, number | undefined>;
-}): JSX.Element => {
-  const chartRef = useRef<Highcharts.Chart | null>(null);
-
-  const yFormatter = (y: number | undefined): string =>
-    `${numeral(y).format("0.0")}%`;
-
-  const integratedHitRatios = {
-    ...hitRatiosByMeetingType,
-    "Testing the Waters": hitRatiosByPreDeal["Testing the Waters"],
-  };
-
-  const meetingTypes: MeetingType[] = [
-    "Testing the Waters",
-    "1x1",
-    "Small Group",
-    "Large Group",
-  ];
-
-  const meetingTypeLabels: Record<MeetingType, string> = {
-    "Testing the Waters": "Testing the Waters",
-    "1x1": "1x1 Meetings",
-    "Small Group": "Small Group Roadshows",
-    "Large Group": "Large Group Roadshows",
-  };
-
-  const visibleMeetingTypes: MeetingType[] = meetingTypes.filter(
-    (meetingType) => integratedHitRatios[meetingType] !== undefined
-  );
-
-  // Create series for each meeting type
-  const series = visibleMeetingTypes.map((meetingType) => ({
-    name: meetingTypeLabels[meetingType],
-    data: [integratedHitRatios[meetingType]],
-  }));
+}) => {
+  const chartRef = useRef(null);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [tooltipContent, setTooltipContent] = useState("");
 
   useEffect(() => {
-    if (chartRef.current) {
-      const chart = chartRef.current;
-
-      // Remove existing legend item events
+    if (chartRef.current && chartRef.current.chart) {
+      const chart = chartRef.current.chart;
       chart.legend.allItems.forEach((item) => {
-        Highcharts.removeEvent(item.legendGroup.element, "mouseover");
-        Highcharts.removeEvent(item.legendGroup.element, "mouseout");
-      });
+        const legendItemElement = item.legendItem.element;
 
-      // Add hover events to legend items
-      chart.legend.allItems.forEach((item) => {
-        const legendItemElement = item.legendGroup.element;
-
-        Highcharts.addEvent(legendItemElement, "mouseover", function (
-          e: MouseEvent
-        ) {
-          const tooltip = document.getElementById("legend-tooltip");
-          if (tooltip) {
-            tooltip.style.display = "block";
-            tooltip.style.left = `${e.pageX + 10}px`;
-            tooltip.style.top = `${e.pageY + 10}px`;
-            tooltip.innerHTML = `Tooltip for ${item.name}`;
-          }
+        legendItemElement.addEventListener("mouseover", function () {
+          setTooltipContent(item.name);
+          setTooltipVisible(true);
         });
 
-        Highcharts.addEvent(legendItemElement, "mouseout", function () {
-          const tooltip = document.getElementById("legend-tooltip");
-          if (tooltip) {
-            tooltip.style.display = "none";
-          }
+        legendItemElement.addEventListener("mouseout", function () {
+          setTooltipVisible(false);
         });
       });
     }
-  }, [series]);
+
+    // Cleanup event listeners on unmount
+    return () => {
+      if (chartRef.current && chartRef.current.chart) {
+        const chart = chartRef.current.chart;
+        chart.legend.allItems.forEach((item) => {
+          const legendItemElement = item.legendItem.element;
+
+          legendItemElement.removeEventListener("mouseover", function () {});
+          legendItemElement.removeEventListener("mouseout", function () {});
+        });
+      }
+    };
+  }, [chartRef]);
+
+  // ...rest of your component logic...
 
   return (
     <div className={styles.panel}>
       <div className={styles.title}>Meeting Hit Rate</div>
-      <div className={styles.chartContainer}>
-        <ColumnChart
-          // Assuming ColumnChart accepts an options prop
-          options={{
-            chart: {
-              type: "bar",
-            },
-            xAxis: {
-              categories: [""],
-            },
-            yAxis: {
-              labels: {
-                formatter: function () {
-                  return yFormatter(this.value);
-                },
-              },
-            },
-            series: series,
-            legend: {
-              useHTML: true,
-              align: "center",
-              verticalAlign: "bottom",
-            },
-            plotOptions: {
-              series: {
-                stacking: "normal",
-                groupPadding: 0.3,
-              },
-            },
-          }}
-          callback={(chart: Highcharts.Chart) => {
-            chartRef.current = chart;
-          }}
-          className={styles.chart}
-        />
-        <div id="legend-tooltip" className={styles.legendTooltip}></div>
-      </div>
+      <ColumnChart
+        ref={chartRef}
+        xAxisLabels={yValues.map(yFormatter)}
+        suppressDataLabels
+        series={[{ data: yValues }]}
+        yFormatter={yFormatter}
+        groupPadding={0.3}
+        className={styles.chart}
+        shadowHeight={100}
+        type={"bar"}
+        stacking={"normal"}
+        legend={{
+          useHTML: true,
+          labels: visibleMeetingTypes.map(
+            (meetingType) => meetingTypeLabels[meetingType]
+          ),
+          align: "center",
+          verticalAlign: "bottom",
+        }}
+      />
+      {tooltipVisible && (
+        <div className={styles.tooltip}>
+          {tooltipContent}
+        </div>
+      )}
     </div>
   );
 };
