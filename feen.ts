@@ -11,7 +11,7 @@ const MeetingHitRateChart = ({
   hitRatiosByMeetingType: PartialRecord<MeetingType, number | undefined>;
   hitRatiosByPreDeal: PartialRecord<MeetingType, number | undefined>;
 }): JSX.Element => {
-  const chartRef = useRef<Highcharts.Chart>();
+  const chartRef = useRef<Highcharts.Chart | null>(null);
 
   const yFormatter = (y: number | undefined): string =>
     `${numeral(y).format("0.0")}%`;
@@ -51,15 +51,17 @@ const MeetingHitRateChart = ({
 
       // Remove existing legend item events
       chart.legend.allItems.forEach((item) => {
-        Highcharts.removeEvent(item.legendItem.element, 'mouseover');
-        Highcharts.removeEvent(item.legendItem.element, 'mouseout');
+        Highcharts.removeEvent(item.legendGroup.element, "mouseover");
+        Highcharts.removeEvent(item.legendGroup.element, "mouseout");
       });
 
       // Add hover events to legend items
       chart.legend.allItems.forEach((item) => {
-        const legendItemElement = item.legendItem.element;
+        const legendItemElement = item.legendGroup.element;
 
-        Highcharts.addEvent(legendItemElement, "mouseover", function (e: MouseEvent) {
+        Highcharts.addEvent(legendItemElement, "mouseover", function (
+          e: MouseEvent
+        ) {
           const tooltip = document.getElementById("legend-tooltip");
           if (tooltip) {
             tooltip.style.display = "block";
@@ -84,23 +86,38 @@ const MeetingHitRateChart = ({
       <div className={styles.title}>Meeting Hit Rate</div>
       <div className={styles.chartContainer}>
         <ColumnChart
-          ref={(chart: Highcharts.Chart) => {
+          // Assuming ColumnChart accepts an options prop
+          options={{
+            chart: {
+              type: "bar",
+            },
+            xAxis: {
+              categories: [""],
+            },
+            yAxis: {
+              labels: {
+                formatter: function () {
+                  return yFormatter(this.value);
+                },
+              },
+            },
+            series: series,
+            legend: {
+              useHTML: true,
+              align: "center",
+              verticalAlign: "bottom",
+            },
+            plotOptions: {
+              series: {
+                stacking: "normal",
+                groupPadding: 0.3,
+              },
+            },
+          }}
+          callback={(chart: Highcharts.Chart) => {
             chartRef.current = chart;
           }}
-          xAxisLabels={[""]}
-          suppressDataLabels
-          series={series}
-          yFormatter={yFormatter}
-          groupPadding={0.3}
           className={styles.chart}
-          shadowHeight={100}
-          type={"bar"}
-          stacking={"normal"}
-          legend={{
-            useHTML: true,
-            align: "center",
-            verticalAlign: "bottom",
-          }}
         />
         <div id="legend-tooltip" className={styles.legendTooltip}></div>
       </div>
