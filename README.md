@@ -1,1 +1,3 @@
 # imspeed
+
+=SUMPRODUCT(--(ISNUMBER(SEARCH("DUPLICATE_INACTIVE", R:R))=FALSE), --(P:P<>"CANCELLED"), --(M:M<>""))
