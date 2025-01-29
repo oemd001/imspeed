@@ -1,5 +1,5 @@
 # imspeed
-```
+```Java
 
         List<CompletableFuture<Response<List<OrderReconDTO>>>> futures = dealIds.stream()
             .map(dealId -> CompletableFuture.supplyAsync(() -> {
