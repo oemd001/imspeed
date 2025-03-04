@@ -1,35 +1,56 @@
 # imspeed
 ```Java
-// Step 1: Fetch the orders response
-final Response<List<OrderReconDTO>> getOrderResponseResponse = httpExecutor.executeCall(
-    ecmCmgIntegrationService.getOrdersForDeals(dealIds)
-);
+// For each tranche in the deal
+for (EcmDealDTO.TrancheDTO tranche : deal.getTranches()) {
+    try {
+        // 1) Build the empty TrancheReport
+        OrderReconTrancheReportDTO orderReconTrancheReport =
+            OrderReconTrancheReportDTO.builder()
+                .trancheId(tranche.getId())
+                .trancheName(tranche.getName())
+                .build();
 
-// Step 2: Ensure response is valid before modifying
-if (getOrderResponseResponse != null && getOrderResponseResponse.isSuccessful() 
-    && getOrderResponseResponse.body() != null) {
-    
-    List<OrderReconDTO> orderReconDTOList = getOrderResponseResponse.body();
+        // 2) Grab all the order pairs for this tranche
+        Collection<ReconOrderPairDTO> reconPairsForTranche =
+            reconOrderPairsPerTranche.getOrDefault(tranche.getId(), Collections.emptyList());
 
-    // Step 3: Extract TRANCHE external IDs from dynamicMappings
-    Map<Integer, String> dealIdToTrancheCodeMap = orderReconDTOList.stream()
-        .filter(dto -> dto.getDynamicMappings() != null) // Ensure dynamicMappings is not null
-        .flatMap(dto -> dto.getDynamicMappings().stream()) // Flatten the dynamicMappings list
-        .filter(mapping -> "TRANCHE".equalsIgnoreCase(mapping.getDynamicMappingType())) // Filter for "TRANCHE"
-        .collect(Collectors.toMap(
-            DynamicMapping::getEcmDealId,  // Use ecmDealId as the key
-            DynamicMapping::getCmgExternalCode, // Use cmgExternalCode as the value
-            (existing, replacement) -> existing // Keep the first occurrence if duplicates exist
-        ));
+        // 3) Count how many of those have a non-empty mismatchedAcknowledgements list
+        int mismatchCount = 0;
+        for (ReconOrderPairDTO pair : reconPairsForTranche) {
+            OrderReconDTO brioOrder = pair.getBrioOrder(); 
+            if (brioOrder != null) {
+                List<IndicationAcknowledgementWebDto> mismatchedAcks =
+                    brioOrder.getMismatchedAcknowledgements();
 
-    // Step 4: Replace externalTrancheId for all OrderReconDTOs
-    orderReconDTOList.forEach(dto -> {
-        if (dto.getEcmDealId() != null && dealIdToTrancheCodeMap.containsKey(dto.getEcmDealId())) {
-            dto.setExternalTrancheId(dealIdToTrancheCodeMap.get(dto.getEcmDealId()));
+                // If the list is non-null and not empty, increment
+                if (mismatchedAcks != null && !mismatchedAcks.isEmpty()) {
+                    mismatchCount++;
+                }
+            }
         }
-    });
 
-    // Step 5: Print the modified response to confirm replacements
-    System.out.println("Updated OrderReconDTO list with Tranche External IDs: " + orderReconDTOList);
+        // 4) Put that mismatchCount into the appropriate OrderBookSummaryDTO
+        OrderBookSummaryDTO summary = new OrderBookSummaryDTO();
+        summary.setNumberOfMisMatchedAcknowledgements(mismatchCount);
+
+        // Choose the right source-system key:
+        // For example, if 'externalSource' is the system we want to associate the summary with:
+        orderReconTrancheReport.getOrderBookSummaries()
+                               .put(SourceSystem.getBrioSourceSystemForExternalSystem(externalSource), summary);
+
+        // 5) Do any other logic, like severity, mismatching orders, or calling services:
+        setMismatchSeverityForTranche(orderReconTrancheReport, reconPairsForTranche);
+        addMismatchingOrdersToReport(orderReconTrancheReport, groupReconOrderPairsByMismatchType(reconPairsForTranche));
+        orderBookReconService.getResolutions(
+            orderReconTrancheReport,
+            groupReconOrderPairsByResolutionType(reconPairsForTranche)
+        );
+
+        // 6) Finally, add this TrancheReport to the overall DealReport
+        orderReconDealReport.getOrderReconTrancheReports().add(orderReconTrancheReport);
+
+    } catch (Exception e) {
+        // handle/log exception
+    }
 }
 ```
