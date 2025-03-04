@@ -1,44 +1,29 @@
 # imspeed
 ```Java
-public void populateMismatchCounts(OrderReconDealReportDTO dealReport,
-                                   Map<Integer, Collection<ReconOrderPairDTO>> reconPairsPerTranche) {
+public Optional<OrderBookSummaryDTO> getOrderBookSummary(
+    Collection<OrderReconDTO> reconDTOs,
+    SourceSystem externalSourceSystem
+) {
+    // Count only the non-cancelled, non-duplicate, active orders
+    List<OrderReconDTO> filteredReconDTOs =
+        reconDTOs.stream()
+                 .filter(this::neitherIsCancelledOrDuplicateInactiveOrder)
+                 .collect(Collectors.toList());
 
-    // For each TrancheReport in the DealReport, find the mismatchCount and set it.
-    for (OrderReconTrancheReportDTO trancheReport : dealReport.getOrderReconTrancheReports()) {
+    // Count how many of those have a non-empty mismatchedAcknowledgements list
+    long mismatchCount = filteredReconDTOs.stream()
+        .filter(r -> r.getMismatchedAcknowledgements() != null
+                  && !r.getMismatchedAcknowledgements().isEmpty())
+        .count();
 
-        // 1) Identify which trancheID we’re dealing with
-        Integer trancheId = trancheReport.getTrancheId();
-        if (trancheId == null) {
-            continue; // or throw/log
-        }
+    final OrderBookSummaryDTO orderBookSummaryDTO = OrderBookSummaryDTO.builder()
+        .numberOfOrders(filteredReconDTOs.size())
+        .numberOfOrdersByGroup(getNumberOfOrdersPerGroup(filteredReconDTOs))
+        .totalAllocation(getTotalAllocation(filteredReconDTOs, externalSourceSystem))
+        .totalDemand(getTotalDemand(filteredReconDTOs))
+        .numberOfMisMatchedAcknowledgements((int) mismatchCount) // <— Include your mismatch field here
+        .build();
 
-        // 2) Get the ReconOrderPairs for that Tranche
-        Collection<ReconOrderPairDTO> pairs =
-            reconPairsPerTranche.getOrDefault(trancheId, Collections.emptyList());
-
-        // 3) Calculate a mismatch count (example logic)
-        int mismatchCount = 0;
-        for (ReconOrderPairDTO pair : pairs) {
-            OrderReconDTO brioOrder = pair.getBrioOrder();
-            if (brioOrder != null
-                && brioOrder.getMismatchedAcknowledgements() != null
-                && !brioOrder.getMismatchedAcknowledgements().isEmpty()) {
-                mismatchCount++;
-            }
-        }
-
-        // 4) Store that mismatchCount in the OrderBookSummaryDTO
-        //    (Create or update an existing summary, whichever makes sense in your app)
-        SourceSystem systemKey = SourceSystem.getBrioSourceSystemForExternalSystem(dealReport.getExternalSystem());
-        OrderBookSummaryDTO summary = 
-            trancheReport.getOrderBookSummaries().get(systemKey);
-
-        if (summary == null) {
-            summary = new OrderBookSummaryDTO();
-        }
-        summary.setNumberOfMisMatchedAcknowledgements(mismatchCount);
-
-        trancheReport.getOrderBookSummaries().put(systemKey, summary);
-    }
+    return Optional.ofNullable(orderBookSummaryDTO);
 }
 ```
