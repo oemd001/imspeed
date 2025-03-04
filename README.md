@@ -1,56 +1,44 @@
 # imspeed
 ```Java
-// For each tranche in the deal
-for (EcmDealDTO.TrancheDTO tranche : deal.getTranches()) {
-    try {
-        // 1) Build the empty TrancheReport
-        OrderReconTrancheReportDTO orderReconTrancheReport =
-            OrderReconTrancheReportDTO.builder()
-                .trancheId(tranche.getId())
-                .trancheName(tranche.getName())
-                .build();
+public void populateMismatchCounts(OrderReconDealReportDTO dealReport,
+                                   Map<Integer, Collection<ReconOrderPairDTO>> reconPairsPerTranche) {
 
-        // 2) Grab all the order pairs for this tranche
-        Collection<ReconOrderPairDTO> reconPairsForTranche =
-            reconOrderPairsPerTranche.getOrDefault(tranche.getId(), Collections.emptyList());
+    // For each TrancheReport in the DealReport, find the mismatchCount and set it.
+    for (OrderReconTrancheReportDTO trancheReport : dealReport.getOrderReconTrancheReports()) {
 
-        // 3) Count how many of those have a non-empty mismatchedAcknowledgements list
+        // 1) Identify which trancheID we’re dealing with
+        Integer trancheId = trancheReport.getTrancheId();
+        if (trancheId == null) {
+            continue; // or throw/log
+        }
+
+        // 2) Get the ReconOrderPairs for that Tranche
+        Collection<ReconOrderPairDTO> pairs =
+            reconPairsPerTranche.getOrDefault(trancheId, Collections.emptyList());
+
+        // 3) Calculate a mismatch count (example logic)
         int mismatchCount = 0;
-        for (ReconOrderPairDTO pair : reconPairsForTranche) {
-            OrderReconDTO brioOrder = pair.getBrioOrder(); 
-            if (brioOrder != null) {
-                List<IndicationAcknowledgementWebDto> mismatchedAcks =
-                    brioOrder.getMismatchedAcknowledgements();
-
-                // If the list is non-null and not empty, increment
-                if (mismatchedAcks != null && !mismatchedAcks.isEmpty()) {
-                    mismatchCount++;
-                }
+        for (ReconOrderPairDTO pair : pairs) {
+            OrderReconDTO brioOrder = pair.getBrioOrder();
+            if (brioOrder != null
+                && brioOrder.getMismatchedAcknowledgements() != null
+                && !brioOrder.getMismatchedAcknowledgements().isEmpty()) {
+                mismatchCount++;
             }
         }
 
-        // 4) Put that mismatchCount into the appropriate OrderBookSummaryDTO
-        OrderBookSummaryDTO summary = new OrderBookSummaryDTO();
+        // 4) Store that mismatchCount in the OrderBookSummaryDTO
+        //    (Create or update an existing summary, whichever makes sense in your app)
+        SourceSystem systemKey = SourceSystem.getBrioSourceSystemForExternalSystem(dealReport.getExternalSystem());
+        OrderBookSummaryDTO summary = 
+            trancheReport.getOrderBookSummaries().get(systemKey);
+
+        if (summary == null) {
+            summary = new OrderBookSummaryDTO();
+        }
         summary.setNumberOfMisMatchedAcknowledgements(mismatchCount);
 
-        // Choose the right source-system key:
-        // For example, if 'externalSource' is the system we want to associate the summary with:
-        orderReconTrancheReport.getOrderBookSummaries()
-                               .put(SourceSystem.getBrioSourceSystemForExternalSystem(externalSource), summary);
-
-        // 5) Do any other logic, like severity, mismatching orders, or calling services:
-        setMismatchSeverityForTranche(orderReconTrancheReport, reconPairsForTranche);
-        addMismatchingOrdersToReport(orderReconTrancheReport, groupReconOrderPairsByMismatchType(reconPairsForTranche));
-        orderBookReconService.getResolutions(
-            orderReconTrancheReport,
-            groupReconOrderPairsByResolutionType(reconPairsForTranche)
-        );
-
-        // 6) Finally, add this TrancheReport to the overall DealReport
-        orderReconDealReport.getOrderReconTrancheReports().add(orderReconTrancheReport);
-
-    } catch (Exception e) {
-        // handle/log exception
+        trancheReport.getOrderBookSummaries().put(systemKey, summary);
     }
 }
 ```
