@@ -1,36 +1,36 @@
 speed
 ```
-Map<String, List<ReconOrderPairDTO>> pairedOrdersByTranche = pairedOrdersForDeal.stream()
-    .peek(pair -> {
-        // Only update pairs for the current deal
-        if (pair.getDealId().equals(ecmDealDTO.getId())) {
-            // Get the tranche id from either the Brio order or the External order
-            String trancheId = Optional.ofNullable(pair.getBrioOrder())
-                                    .orElse(pair.getExternalOrder())
-                                    .getTrancheId();
-
-            // Find the matching tranche in the deal
-            ecmDealDTO.getTranches().stream()
-                .filter(tranche -> tranche.getId().equals(trancheId))
-                .findFirst()
-                .ifPresent(matchingTranche -> {
-                    // Get the list of syndicate members for the matching tranche
-                    List<SyndicateMember> syndicateMembers = matchingTranche.getSyndicateMembers();
-
-                    // Iterate through the list to aggregate the boolean values.
-                    // For example, if any member is GS, we mark the pair as GS.
-                    boolean isGs = syndicateMembers.stream()
-                                     .anyMatch(member -> member.isGs());
-                    boolean isSettlementAgent = syndicateMembers.stream()
-                                               .anyMatch(member -> member.isSettlementAgent());
-
-                    pair.setIsGs(isGs);
-                    pair.setIsSettlementAgent(isSettlementAgent);
-                });
+Map<String, List<ReconOrderPairDTO>> pairedOrdersByTranche = new HashMap<>();
+try {
+    // Assume that ecmDealDTO.getTranches() returns a List of tranches,
+    // and each tranche's getSyndicateMembers() returns a List<List<SyndicateMemberDTO>>.
+    boolean overallFlag = false;
+    
+    // Iterate over tranches and their syndicate members.
+    outer:
+    for (TrancheDTO tranche : ecmDealDTO.getTranches()) {
+        for (List<SyndicateMemberDTO> syndicateList : tranche.getSyndicateMembers()) {
+            for (SyndicateMemberDTO member : syndicateList) {
+                // Check if both flags are true.
+                if (member.isGs() && member.isSettlementAgent()) {
+                    overallFlag = true;
+                    break outer;  // Found a match; exit all loops.
+                }
+            }
         }
-    })
-    .collect(Collectors.groupingBy(pair ->
-         Optional.ofNullable(pair.getBrioOrder())
-                 .orElse(pair.getExternalOrder())
-                 .getTrancheId()));
-```
+    }
+    
+    // Process the list of order pairs and update the flags based on the overallFlag.
+    pairedOrdersByTranche = pairedOrdersForDeal.stream()
+        .peek(pair -> {
+            pair.setIsGs(overallFlag);
+            pair.setIsSettlementAgent(overallFlag);
+        })
+        .collect(Collectors.groupingBy(pair -> 
+            Optional.ofNullable(pair.getBrioOrder())
+                    .orElse(pair.getExternalOrder())
+                    .getTrancheId()
+        ));
+} catch (Exception ex) {
+    ex.printStackTrace();
+}```
