@@ -1,17 +1,35 @@
-## Pre-Requisites
+# ECM | CMG Recon Document Index
 
-| Requirement                 | Description                                                                                                                                   |
-|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| **Brio/ECM Deal ID**        | You must have a valid Brio or ECM deal ID so that the acknowledgement data can be reflowed.                                                  |
-| **Swagger Endpoint Access** | Confirm you can access [ReflowBrioAndCmgIndicationAcknowledgements](https://cmgint.brio.fg.url.gs.com/swagger-ui/index.html?configUrl=/v3/api-docs/swagger-config#/indication-admin-facade/reflowBrioAndCmgIndicationAcknowledgements). |
-| **CMG as Primary Source**   | Ensure that CMG’s acknowledgement data is considered the “source of truth” for final validation.                                             |
+This page serves as the central hub for navigating all documentation related to Brio and CMG data reflows. Please refer to the appropriate section based on the data category you're working with.
 
 ---
 
-## Reflow Acknowledgements 
+## 🔁 Indications
 
-| # | Scenario                                                  | Pre-Requisites                               | Endpoint Location                                                                                                                               | Procedure                                                                        | Expected Outcome                                                                       | Actions / Follow Ups                                                                                                                      |
-|---|-----------------------------------------------------------|----------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| 1 | **Reflow Brio ↔ CMG Acknowledgements**                   | - Valid **Brio/ECM Deal ID** <br>- Endpoint Access | **Swagger**:<br>[reflowBrioAndCmgIndicationAcknowledgements](https://cmgint.brio.fg.url.gs.com/swagger-ui/index.html?configUrl=/v3/api-docs/swagger-config#/indication-admin-facade/reflowBrioAndCmgIndicationAcknowledgements) | **Step 1**: Navigate to the Swagger endpoint link.                                | The Swagger UI loads successfully                                                     | - If the link fails, verify network connectivity and proper credentials.                                                                     |
-| 2 | **Reflow Brio ↔ CMG Acknowledgements**                   | - Valid **Brio/ECM Deal ID** <br>- Endpoint Access | **Swagger**:<br>[reflowBrioAndCmgIndicationAcknowledgements](https://cmgint.brio.fg.url.gs.com/swagger-ui/index.html?configUrl=/v3/api-docs/swagger-config#/indication-admin-facade/reflowBrioAndCmgIndicationAcknowledgements) | **Step 2**: Enter the **Brio/ECM Deal ID** you’d like to reflow in the request body or parameter as required. | The system recognizes the Deal ID and displays it in the request configuration form. | - If the Deal ID is invalid, correct it and retry. <br>- Log any errors returned by the endpoint.                                            |
-| 3 | **Reflow Brio ↔ CMG Acknowledgements**                   | - Valid **Brio/ECM Deal ID** <br>- Endpoint Access | **Swagger**:<br>[reflowBrioAndCmgIndicationAcknowledgements](https://cmgint.brio.fg.url.gs.com/swagger-ui/index.html?configUrl=/v3/api-docs/swagger-config#/indication-admin-facade/reflowBrioAndCmgIndicationAcknowledgements) | **Step 3**: Click **Execute** to initiate the reflow process.                      | The acknowledgement data is reflowed; a `200` status indicates success               | - Confirm that CMG & Brio acknowledgements now match. <br>- If mismatches remain, escalate to the relevant support teams.                    |
+> Covers scenarios where indication data is missing, mismatched, or needs to be reflowed between Brio and CMG.
+
+- **Includes:**
+  - Reflow from Brio to CMG
+  - Reflow from CMG to Brio
+  - Field definitions and example IDs
+
+---
+
+## 📊 Allocations
+
+> Details the allocation reflow process depending on whether GS is the lead or non-lead bank.
+
+- **Includes:**
+  - Lead scenario: Brio → CMG
+  - Non-lead scenario: CMG → Brio
+  - Required IDs and Swagger endpoints
+
+---
+
+## ✅ Acknowledgements
+
+> Focuses on ensuring acknowledgement data in Brio aligns with CMG, our primary source of truth.
+
+- **Includes:**
+  - Reflow process to sync acknowledgement data
+  - Required inputs and step-by-step Swagger usage
