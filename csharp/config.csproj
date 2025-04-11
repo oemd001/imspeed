@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Use whichever netX.0-windows TFM you want, e.g. net7.0-windows10.0.19041.0 -->
+    <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
+    
+    <!-- Enable Windows Forms or WPF so that System.Drawing is supported on Windows -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Or <UseWPF>true</UseWPF> if you prefer -->
+    
+    <!-- Enable unsafe code for the block copying -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Enable C# 8+ nullable reference types -->
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- For Windows Runtime (WinRT) capture APIs in C# -->
+    <PackageReference Include="Microsoft.Windows.CsWinRT" Version="1.7.3" />
+
+    <!-- For System.Drawing.Bitmap, etc. on Windows -->
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+
+    <!-- For SharpDX (DX interop) -->
+    <PackageReference Include="SharpDX" Version="4.2.0" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+  </ItemGroup>
+
+</Project>
