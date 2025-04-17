@@ -28,7 +28,7 @@
 | Community & Ecosystem     | Mature, large community, rich plugins             | Rapidly growing, Microsoft-backed, flexible     |
 
 
-## 2. Migrating Tests: When & Why?
+## 2. Migrating Tests
 
 - **Compatibility**: TFWeb tests use synchronous commands (`common.safeClick`, `wait(...).toBeVisible()`). Cypress’s chainable API is closer in style, easing migration.
 - **Async Model**: Playwright’s async/await requires rewriting tests to `await page.click(...)` etc., but offers clearer flow control.
