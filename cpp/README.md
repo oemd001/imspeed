@@ -1,81 +1,107 @@
-# Win32CaptureSample
-A simple sample using the Windows.Graphics.Capture APIs in a Win32 application.
+# Action Plan | Migrating **TFWeb** to **Playwright**
 
-## Table of Contents
-  * [Requirements](https://github.com/robmikh/Win32CaptureSample#requirements)
-  * [Win32 vs UWP](https://github.com/robmikh/Win32CaptureSample#win32-vs-uwp)
-    * [HWND or HMONITOR based capture](https://github.com/robmikh/Win32CaptureSample#hwnd-or-hmonitor-based-capture)
-    * [Using the GraphicsCapturePicker](https://github.com/robmikh/Win32CaptureSample#using-the-graphicscapturepicker)
-  * [Create vs CreateFreeThreaded](https://github.com/robmikh/Win32CaptureSample#create-vs-createfreethreaded)
-  * [Points of interest](https://github.com/robmikh/Win32CaptureSample#points-of-interest)
+---
 
-## Requirements
-This sample requires the [Windows 11 SDK (10.0.26100)](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/) and [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) to compile. Neither are required to run the sample once you have a binary. The minimum verison of Windows 10 required to run the sample is build 17134.
+## Overview
+| Item | Details |
+|------|---------|
+| **Objective** | Replace TFWeb with Playwright for UI E2E tests while keeping everything inside **`brio-e2e-automated-tests`** |
+| **Finding** | TFWeb tests live in their own repo; swapping the runner has zero impact on product code |
+| **Strategy** | Incremental migration—suite‑by‑suite—until Playwright reaches 100 % parity |
 
-## Win32 vs UWP
-This sample demonstrates using the Windows.Graphics.Capture APIs in a Win32 application. For the most part, the usage is the same, except for a few tweaks:
+---
 
-### HWND or HMONITOR based capture
-Win32 applications have access to the [IGraphicsCaptureItemInterop](https://docs.microsoft.com/en-us/windows/win32/api/windows.graphics.capture.interop/nn-windows-graphics-capture-interop-igraphicscaptureiteminterop) interface. This interface can be found by QIing for it on the `GraphicsCaptureItem` factory:
+## Step&nbsp;0 – Feasibility
 
-```cpp
-#include <winrt/Windows.Graphics.Capture.h>
-#include <windows.graphics.capture.interop.h>
-#include <windows.graphics.capture.h>
+> **Question:** Can we migrate TFWeb to Playwright and keep tests in the current repository?  
+> **Answer:** **Yes.** The isolation of the TFWeb test bundle means we can drop‐in Playwright with no downstream risk.
 
-namespace winrt
-{
-    using namespace Windows::Graphics::Capture;
-}
+*Replace the existing **SyndicateLinkUI‑brio** TFWeb harness with an equivalent Playwright harness.*
 
-// Obtaining the factory
-auto interopFactory = winrt::get_activation_factory<
-    winrt::GraphicsCaptureItem, 
-    IGraphicsCaptureItemInterop>();
+---
 
-winrt::GraphicsCaptureItem item{ nullptr };
+## Step&nbsp;1 – Configuration Parity
 
-// Creating a GraphicsCaptureItem from a HWND
-winrt::check_hresult(interopFactory->CreateForWindow(
-    hwnd, 
-    winrt::guid_of<winrt::GraphicsCaptureItem>(), 
-    winrt::put_abi(item)));
+Create a Playwright‑based `tfweb.conf.js` replacement that supports multiple environments and suites.
 
-// Creating a GraphicsCaptureItem from a HMONITOR
-winrt::check_hresult(interopFactory->CreateForMonitor(
-    hmon, 
-    winrt::guid_of<winrt::GraphicsCaptureItem>(), 
-    winrt::put_abi(item)));
-```
-This sample makes uses a collection of common header files which [contains helpers](https://github.com/robmikh/robmikh.common/blob/master/robmikh.common/include/robmikh.common/capture.desktop.interop.h) for `GraphicsCaptureItem` creation.
+| Requirement | Notes |
+|-------------|-------|
+| **Environments** | `local`, `dev`, `qa` |
+| **Suites** | `americasIPO`, `americasSingleTrancheIPO`, `americasCmgGsLeadSingleTrancheFO`, etc. |
+| **Browser** | Chrome (headless/headful) |
+| **Auth** | GSSSO token injection |
+| **Tip** | Use **Playwright Projects** in `playwright.config.ts` to keep env‑specific settings tidy |
 
-### Using the GraphicsCapturePicker
-Win32 applications may also use the `GraphicsCapturePicker` to obtain a `GraphicsCaptureItem`, which asks the user to do the selection. Like other pickers, the `GraphicsCapturePicker` won't be able to infer your window in a Win32 application. You'll need to QI for the [`IInitializeWithWindow`](https://msdn.microsoft.com/en-us/library/windows/desktop/hh706981(v=vs.85).aspx) interface and provide your window's HWND.
+---
 
-```cpp
-#include <winrt/Windows.Graphics.Capture.h>
-#include <shobjidl_core.h>
+## Step&nbsp;2 – Test Inventory & Migration Status
 
-namespace winrt
-{
-    using namespace Windows::Graphics::Capture;
-}
+_Update the **Status** column as work progresses (`Pending → In‑Progress → Complete`)._
 
-auto picker = winrt::GraphicsCapturePicker();
-auto initializeWithWindow = picker.as<IInitializeWithWindow>();
-winrt::check_hresult(initializeWithWindow->Initialize(hwnd));
-// The picker is now ready for use!
-```
+| Section | Test Name | File Name | Status |
+|---------|-----------|-----------|--------|
+| Deal Setup | dealCreate | func/DealSetup/DealCreateSpec.js | Pending |
+| Deal Setup | dealSearch | func/DealSetup/DealSearchSpec.js | Pending |
+| Deal Setup | recentDeals | func/DealSetup/RecentDealsSpec.js | Pending |
+| Deal Setup | activeDeals | func/DealSetup/ActiveDealsSpec.js | Pending |
+| Pre‑Pricing | dealInformation | func/PrePricing/DealInformationSpec.js | Pending |
+| Pre‑Pricing | currencies | func/PrePricing/CurrenciesSpec.js | Pending |
+| Pre‑Pricing | instruments | func/PrePricing/InstrumentsSpec.js | Pending |
+| Pre‑Pricing | tranches | func/PrePricing/TranchesSpec.js | Pending |
+| Pre‑Pricing | dealerbook | func/PrePricing/DealerbookSpec.js | Pending |
+| Pre‑Pricing | prePricingContacts | func/PrePricing/ContactsSpec.js | Pending |
+| Pre‑Pricing | launchDeal | func/PrePricing/LaunchDealSpec.js | Pending |
+| Pre‑Pricing | ioiEntry | func/PrePricing/IoiEntryConfigurationSpec.js | Pending |
+| Checklist | checklistOnDealCreation | func/Checklist/ChecklistOnDealCreationSpec.js | Pending |
+| Staleness Notifications | stalenessNotifications | func/StalenessNotifications/StalenessNotificationsSpec.js | Pending |
+| Pricing | pricingDealInformation | func/Pricing/DealInformationSpec.js | Pending |
+| Pricing | dealLayout | func/Pricing/DealLayoutSpec.js | Pending |
+| Pricing | pricingContacts | func/Pricing/ContactsSpec.js | Pending |
+| Pricing | releasePricingTerms | func/Pricing/PricingSpec.js | Pending |
+| Trade Booking Setup | tranchesSection | func/TradeBookingSetup/TranchesSpec.js | Pending |
+| Trade Booking Setup | chargesAndStampTaxSection | func/TradeBookingSetup/ChargesAndStampTaxSpec.js | Pending |
+| Trade Booking Setup | taxesAndChargesModal | func/TradeBookingSetup/TaxesAndChargesModalSpec.js | Pending |
+| Trade Booking Setup | instrumentsGrid | func/TradeBookingSetup/InstrumentsSpec.js | Pending |
+| Trade Booking Setup | stabilizationDailyTools | func/TradeBookingSetup/StabilizationsSpec.js | Pending |
+| Pre‑Pricing | unsavedChanges | func/PrePricing/UnsavedChangesSpec.js | Pending |
+| Trade Booking | tradeBookingSetupIndications | func/TradeBooking/TBSetupSpec.js | Pending |
+| Trade Booking | ioGridSpec | func/TradeBooking/IOGridSpec.js | Pending |
+| Trade Booking | underwritingGridSpec | func/TradeBooking/UnderwritingGridSpec.js | Pending |
+| Trade Booking | tradesGridSpec | func/TradeBooking/TradesGridSpec.js | Pending |
+| Trade Booking | summaryGridSpec | func/TradeBooking/SummaryGridSpec.js | Pending |
+| Email | prePricingEmail | func/Email/PrePricingEmailSpec.js | Pending |
+| Email | tradeBookingSetupEmail | func/Email/TradeBookingSetupEmailSpec.js | Pending |
+| Email | panEmail | func/Email/PanEmailSpec.js | Pending |
+| Pricing Sheet | pricingSheet | func/PricingSheet/PricingSheetSpec.js | Pending |
+| Final Settlement | standardExpenses | func/FinalSettlement/StandardExpensesSpec.js | Pending |
+| Final Settlement | additionalExpenses | func/FinalSettlement/AdditionalExpensesSpec.js | Pending |
+| Final Settlement | fsReports | func/FinalSettlement/ReportsSpec.js | Pending |
+| Final Settlement | oopAdjustments | func/FinalSettlement/PaymentSubmissionSpec.js | Pending |
+| Final Settlement | additionalAdjustments | func/FinalSettlement/AdditionalAdjustmentsSpec.js | Pending |
+| Final Settlement | paymentSubmission | func/FinalSettlement/PaymentSubmissionSpec.js | Pending |
+| Final Settlement | validationExpenses | func/FinalSettlement/ExpensesValidationSpec.js | Pending |
+| TearDown | tearDown | func/TearDown/TearDown.js | Pending |
+| Setup | americasIPOSetup | func/americasIPO.js | Pending |
+| Setup | americasSingleTrancheIPOSetup | func/americasSingleTrancheIPO.js | Pending |
+| Setup | americasBlockTests | func/americasBlockTrade.js | Pending |
+| Setup | australiaBlockTests | func/australiaBlockTrade.js | Pending |
+| Setup | australiaIPOSetup | func/australiaIPO.js | Pending |
+| Multi‑Region | followOnTests | func/MultiRegionTests/followOn.js | Pending |
+| Multi‑Region | japanIPOTests | func/MultiRegionTests/japanIPO.js | Pending |
+| Multi‑Region | emeaIPOTests | func/MultiRegionTests/emeaIPO.js | Pending |
+| Multi‑Region | auctionValidations | func/PrePricing/auctionValidationsSpec.js | Pending |
+| CMG Mapping | americasCmgFO | func/americasCmgFO.js | Pending |
+| CMG Mapping | CmgSingleTrancheGsLeadBrokerSpec | func/prePricing/CmgSingleTrancheGsLeadBrokerSpec.js | Pending |
+| CMG Mapping | CmgSingleTrancheGsNonLeadBrokerSpec | func/prePricing/CmgSingleTrancheGsNonLeadBrokerSpec.js | Pending |
+| CMG Mapping | publishDealToCmg | func/CmgMapping/CmgMappingPublishSpec.js | Pending |
+| CMG Mapping | linkDealToCmgDeal | func/CmgMapping/CmgMappingLinkSpec.js | Pending |
 
-## Create vs CreateFreeThreaded
-When a `Direct3D11CaptureFramePool` is created using `Create`, you're required to have a `DispatcherQueue` for the current thread and for that thread to be pumping messages. When created with `Create`, the `FrameArrived` event will fire on the same thread that created the frame pool.
+---
 
-When created with `CreateFreeThreaded`, there is no `DispatcherQueue` requirement. However, the `FrameArrived` event will fire on the frame pool's internal thread. This means that the callback you provide must be agile (this is usually handled by the language projection).
+## Step&nbsp;3 – Migration Automation
+1. **Bootstrap** a Playwright project: `npx playwright init`  
+2. **Port utilities** to Playwright fixtures/helpers.  
+3. **CI**: swap the TFWeb test step for `npx playwright test`.  
+4. **Gradual rollout**: keep TFWeb in CI until Playwright reaches full coverage.
 
-## Points of interest
-The code is organized into a couple of classes:
-
-  * [`App.h/cpp`](https://github.com/robmikh/Win32CaptureSample/blob/master/Win32CaptureSample/App.cpp) handles the basic logic of the sample, as well as setting up the visual tree to present the capture preview.
-  * [`SampleWindow.h/cpp`](https://github.com/robmikh/Win32CaptureSample/blob/master/Win32CaptureSample/SampleWindow.cpp) handles the main window and the controls.
-  * [`SimpleCapture.h/cpp`](https://github.com/robmikh/Win32CaptureSample/blob/master/Win32CaptureSample/SimpleCapture.cpp) handles the basics of using the Windows.Graphics.Capture API given a `GraphicsCaptureItem`. It starts the capture and copies each frame to a swap chain that is shown on the main window.
-  * [`CaptureSnapshot.h/cpp`](https://github.com/robmikh/Win32CaptureSample/blob/master/Win32CaptureSample/CaptureSnapshot.cpp) shows how to take a snapshot with the Windows.Graphics.Capture API. The current version uses coroutines, but you could synchronously wait as well using the same events. Just remember to create your frame pool with `CreateFreeThreaded` so you don't deadlock!
+---
